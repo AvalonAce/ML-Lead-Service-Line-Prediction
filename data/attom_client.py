@@ -7,7 +7,7 @@ import time
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 ATTOM_API_KEY = os.getenv('ATTOM_API_KEY')
 
-df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(__file__), 'processed'), 'NY_SLI_INSTL_YEARS_ADJUSTED_NO_UNKNOWNS.csv'))
+df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(__file__), 'processed'), 'NY_SLI_YEARS_ADJUSTED_NO_UNKNOWNS.csv'))
 
 
 
@@ -162,63 +162,64 @@ print(f"Number of rows in Manhattan: {manhattan_count}")
 # df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 
-
 start_time = time.time()
 
 for index, row in df.iterrows():
-    print(row['Street Address'] + ' ' + row['Service Line Locality'] + ', ' + row['State'])
-    success, json = get_attom_property_basicprofile(
-        address1=row['Street Address'],
-        address2=row['Service Line Locality'] + ', ' + row['State']
-    )
-    if not success:
-        continue
-    # attom id is how they index their own DB I think. This is more valuable than st. add
-    attomID = getAttomID(json)
-    if attomID is None:
-        print("-------- could not find any thing!!! ---------")
-        continue
+    try:
+        print(row['Street Address'] + ' ' + row['Service Line Locality'] + ', ' + row['State'])
+        success, json = get_attom_property_basicprofile(
+            address1=row['Street Address'],
+            address2=row['Service Line Locality'] + ', ' + row['State']
+        )
+        if not success:
+            continue
+        # attom id is how they index their own DB I think. This is more valuable than st. add
+        attomID = getAttomID(json)
+        if attomID is None:
+            print("-------- could not find any thing!!! ---------")
+            continue
 
-    lot_size2 = getLotSize2(json)
-    prop_class = getPropClass(json)
-    year_built = getYearBuilt(json)
-    living_size = getLivingSize(json)
-    size_ind = getSizeInd(json)
-    beds = getBeds(json)
-    baths_total = getBathsTotal(json)
-    levels = getLevels(json)
-    market_total_value = getMarketTotalValue(json)
+        lot_size2 = getLotSize2(json)
+        prop_class = getPropClass(json)
+        year_built = getYearBuilt(json)
+        living_size = getLivingSize(json)
+        size_ind = getSizeInd(json)
+        beds = getBeds(json)
+        baths_total = getBathsTotal(json)
+        levels = getLevels(json)
+        market_total_value = getMarketTotalValue(json)
 
-    print(f"attomID: {attomID}")
-    print(f"lot_size2: {lot_size2}")
-    print(f"prop_class: {prop_class}")
-    print(f"year_built: {year_built}")
-    print(f"living_size: {living_size}")
-    print(f"size_ind: {size_ind}")
-    print(f"beds: {beds}")
-    print(f"baths_total: {baths_total}")
-    print(f"levels: {levels}")
-    print(f"market_total_value: {market_total_value}")
+        print(f"attomID: {attomID}")
+        print(f"lot_size2: {lot_size2}")
+        print(f"prop_class: {prop_class}")
+        print(f"year_built: {year_built}")
+        print(f"living_size: {living_size}")
+        print(f"size_ind: {size_ind}")
+        print(f"beds: {beds}")
+        print(f"baths_total: {baths_total}")
+        print(f"levels: {levels}")
+        print(f"market_total_value: {market_total_value}")
 
-    if beds == "None" or beds is None:
-        beds = 0.0
-    if baths_total == "None" or baths_total is None:
-        baths_total = 0.0
+        if beds == "None" or beds is None:
+            beds = 0.0
+        if baths_total == "None" or baths_total is None:
+            baths_total = 0.0
 
-    df.at[index, 'attomID'] = attomID
-    df.at[index, 'lot_size2'] = lot_size2
-    df.at[index, 'prop_class'] = prop_class
-    df.at[index, 'year_built'] = year_built
-    df.at[index, 'living_size'] = living_size
-    df.at[index, 'size_ind'] = size_ind
-    df.at[index, 'beds'] = beds
-    df.at[index, 'baths_total'] = baths_total
-    df.at[index, 'levels'] = levels
-    df.at[index, 'market_total_value'] = market_total_value
+        df.at[index, 'attomID'] = attomID
+        df.at[index, 'lot_size2'] = lot_size2
+        df.at[index, 'prop_class'] = prop_class
+        df.at[index, 'year_built'] = year_built
+        df.at[index, 'living_size'] = living_size
+        df.at[index, 'size_ind'] = size_ind
+        df.at[index, 'beds'] = beds
+        df.at[index, 'baths_total'] = baths_total
+        df.at[index, 'levels'] = levels
+        df.at[index, 'market_total_value'] = market_total_value
 
-    i += 1
-    if i > 20:
+    except KeyboardInterrupt:
+        print("Keyboard interrupt detected. Breaking out of loop.")
         break
+
 
 
 end_time = time.time()
