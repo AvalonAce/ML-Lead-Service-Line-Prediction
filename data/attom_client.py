@@ -9,7 +9,8 @@ ATTOM_API_KEY = os.getenv('ATTOM_API_KEY')
 
 df = pd.read_csv(os.path.join(os.path.join(os.path.dirname(__file__), 'processed'), 'NY_SLI_YEARS_ADJUSTED_NO_UNKNOWNS.csv'))
 
-CALL_LIMIT = 1000
+CALL_LIMIT_OLD = 1000
+CALL_LIMIT_NEW = 1500
 
 def get_attom_property_basicprofile(address1, address2):
     url = f"https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/basicprofile?address1={address1}&address2={address2}"
@@ -224,7 +225,10 @@ interleaved_samples = interleave(lead_sample, nonlead_sample)
 
 
 for index, row in interleaved_samples.iterrows():
-    if index > CALL_LIMIT:
+    # super chopped, but I want the next 1000
+    if index < CALL_LIMIT_OLD:
+        continue
+    if index > CALL_LIMIT_NEW:
         break
     try:
         print(row['Street Address'] + ' ' + row['Service Line Locality'] + ', ' + row['State'])
@@ -292,11 +296,11 @@ print(f"Row count: {len(interleaved_samples)}")
 interleaved_samples = interleaved_samples.dropna(subset=['attomID'])
 
 import json as pyjson
-with open(os.path.join(os.path.dirname(__file__), 'raw/home_jsons.json'), 'w') as f:
+with open(os.path.join(os.path.dirname(__file__), 'raw/home_jsons_2.json'), 'w') as f:
     pyjson.dump(home_jsons, f, indent=2)
 
 json_df = pd.DataFrame(home_jsons)
-json_df.to_csv(os.path.join(os.path.dirname(__file__), 'raw/attom_scraped.csv'), index=False)
+json_df.to_csv(os.path.join(os.path.dirname(__file__), 'raw/attom_scraped_2.csv'), index=False)
 
-interleaved_samples.to_csv(os.path.join(os.path.dirname(__file__), 'processed/NY_SLI_ATTOM_NEW.csv'), index=False)
+interleaved_samples.to_csv(os.path.join(os.path.dirname(__file__), 'processed/NY_SLI_ATTOM_NEW_2.csv'), index=False)
 
